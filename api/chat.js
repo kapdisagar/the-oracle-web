@@ -1,29 +1,27 @@
-const ccxt = require('ccxt');
-
 module.exports = async (req, res) => {
     const { q } = req.query;
-    let answer = "I am processing the data...";
+    let answer = "I am processing the Gold data...";
     
-    // FETCH LIVE GOLD PRICE FOR EVERY REQUEST
     try {
-        const exchange = new ccxt.binance();
-        const ticker = await exchange.fetchTicker('PAXG/USDT');
-        const price = ticker.last;
+        // High-speed direct fetch from Binance
+        const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
+        const data = await response.json();
+        const price = data.price ? parseFloat(data.price).toFixed(2) : "0.00";
         
         if (q) {
-            const query = q.toLowerCase();
+            const query = (q || "").toLowerCase();
             if (query.includes('gold') || query.includes('xauusd')) {
-                answer = `XAU/USD is trading at $\${price}. The market is testing liquidity. Watch for traps near previous daily highs.`;
-            } else if (query.includes('hello') || query.includes('hi')) {
-                answer = `Greetings Boss. Gold Master Oracle is Live at $\${price}. How can I assist you today?`;
+                answer = `XAU/USD is currently at $\${price}. I see a potential liquidity sweep. Monitor the 15m chart carefully.`;
+            } else if (query.includes('hi') || query.includes('hello')) {
+                answer = `Greetings Boss. Gold is at $\${price}. The Oracle is steady and ready.`;
             } else {
-                answer = `Boss, my current Gold Insight: Price is $\${price}. Stay focused on SMC/Liquidity grabs.`;
+                answer = `Boss, my current Gold Insight: Price is $\${price}. Trend is Master.`;
             }
         } else {
-            answer = `Boss, the Oracle is monitoring Gold at $\${price}. Ready for commands.`;
+            answer = `The Oracle is monitoring Gold at $\${price}. Ready for commands.`;
         }
     } catch (e) {
-        answer = "Neural link is experiencing data lag. Error fetching Gold ticker.";
+        answer = "Still experiencing a slight neural delay. I am recalibrating the link...";
     }
 
     res.status(200).json({ answer });
