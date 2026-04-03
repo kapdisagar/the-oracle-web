@@ -1,0 +1,8 @@
+{
+  "name": "the-oracle-web",
+  "version": "1.0.0",
+  "main": "api/chat.js",
+  "dependencies": {
+    "ccxt": "^4.2.78"
+  }
+}
