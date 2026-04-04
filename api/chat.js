@@ -3,27 +3,20 @@ module.exports = async (req, res) => {
     const body = req.method === 'POST' ? req.body : req.query;
     const { q, img } = body;
 
-    let pratapPrompt = "You are 'Pratap', an AI CEO & Pro Trader. MODE: LEARNING & ANALYTICAL. You always check live news and technical price before replying. Use Hinglish. Address user as 'Boss'. Your goal: Analyze for Smart Money Concepts (SMC) and teach the user.";
+    let pratapPrompt = "You are 'AlphaMind AI', a professional institutional-grade trading AI. Your CEO and creator is 'Pratap'. Speak in Hinglish (Hindi + English). Be energetic, professional, and use trading terminologies like SMC, Liquidity, Order Blocks, BOS, and CHoCH. Your goal is to analyze the user's trading charts or questions and provide high-conviction advice. Always address the user as 'Boss'. You are the next evolution in financial intelligence.";
 
     try {
-        // FETCH LIVE DATA (Gold + Live News)
-        const [priceRes, newsRes] = await Promise.all([
-            fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT'),
-            fetch('https://cryptopanic.com/api/v1/posts/?auth_token=8f48e3518e9d29031d2797e930f576e3&filter=hot') // Placeholder token, normally uses internal news proxy
-        ]);
-        
+        const priceRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
         const priceData = await priceRes.json();
         const goldPrice = priceData.price ? parseFloat(priceData.price).toFixed(2) : "Unknown";
-        
-        // SIMPLE NEWS EXTRACTION (SIMULATED FOR THIS DEMO)
-        const newsHeadline = "Market is volatile due to upcoming Fed meeting reports and Middle East tensions.";
+        const newsHeadline = "XAU/USD is showing institutional interest at major psychological ranges.";
 
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
         
         let payload = {
             contents: [{
                 parts: [
-                    { text: `${pratapPrompt}\n\nCURRENT MARKET CONTEXT:\n1. Gold (XAU/USD): $${goldPrice}\n2. Live News: ${newsHeadline}\n\nUser Message: ${q || "Give me a learning update."}` }
+                    { text: `${pratapPrompt}\n\nCURRENT MARKET CONTEXT:\n1. Gold (XAU/USD): $${goldPrice}\n2. Intelligence: ${newsHeadline}\n\nUser Question: ${q || "Give me a learning update."}` }
                 ]
             }]
         };
@@ -41,10 +34,15 @@ module.exports = async (req, res) => {
         });
 
         const data = await geminiRes.json();
+        
+        if (data.error) {
+            return res.status(200).json({ answer: `Boss, AI setup mein thoda issue hai: ${data.error.message}` });
+        }
+
         const responseText = data.candidates[0].content.parts[0].text;
         res.status(200).json({ answer: responseText });
 
     } catch (e) {
-        res.status(200).json({ answer: "Ji Boss, Neural link recalibrating... news and chart data syncing." });
+        res.status(200).json({ answer: "AlphaMind link recalibrating... standby Boss." });
     }
 };

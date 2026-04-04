@@ -3,100 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE ORACLE | Neural Vision</title>
+    <title>ALPHAMIND AI | Neural Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { background: #050505; color: white; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
-        .header { background: rgba(59, 130, 246, 0.1); padding: 20px; border-bottom: 2px solid #3B82F6; text-align: center; letter-spacing: 5px; font-weight: bold; text-transform: uppercase; text-shadow: 0 0 10px #3B82F6; }
-        #chat { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background: radial-gradient(circle at center, #111 0%, #000 100%); }
-        .msg { padding: 15px 20px; border-radius: 20px; max-width: 80%; line-height: 1.5; font-size: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,1); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
-        .bot { background: #1F2937; align-self: flex-start; color: white; border-bottom-left-radius: 2px; }
-        .user { background: #3B82F6; align-self: flex-end; color: #fff; border-bottom-right-radius: 2px; }
-        .img-preview { max-width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid #3B82F6; }
-        .input-area { background: #111; padding: 20px; display: flex; gap: 10px; border-top: 1px solid #222; align-items: center; }
-        input[type="text"] { flex: 1; background: #000; border: 1px solid #3B82F6; color: white; padding: 15px; border-radius: 30px; outline: none; }
-        .file-btn { background: #333; color: #3B82F6; border: 1px solid #3B82F6; padding: 10px 15px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; }
-        button#s { background: #3B82F6; color: white; border: none; padding: 15px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; }
-        .loading { opacity: 0.5; pointer-events: none; }
+        :root { --bg: #0A0A0A; --sidebar: #111111; --text: #E5E7EB; --blue: #3B82F6; --glass: rgba(255,255,255,0.03); }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; margin: 0; display: flex; flex-direction: column; }
+        .header { padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .brand { font-size: 1.2rem; font-weight: 600; letter-spacing: 2px; color: var(--blue); text-transform: uppercase; }
+        .ceo-status { font-size: 0.8rem; color: #666; font-weight: 400; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px 10%; display: flex; flex-direction: column; gap: 30px; scroll-behavior: smooth; }
+        .msg { max-width: 85%; line-height: 1.7; font-size: 1rem; color: #D1D5DB; }
+        .bot-wrap { align-self: flex-start; display: flex; gap: 15px; }
+        .user-wrap { align-self: flex-end; display: flex; flex-direction: column; align-items: flex-end; }
+        .msg-text { padding: 10px 0; }
+        .msg-img { max-width: 400px; border-radius: 12px; margin-top: 15px; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .input-container { padding: 40px 10%; position: relative; }
+        .input-box { background: #1A1A1A; border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 15px 25px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 50px rgba(0,0,0,0.4); transition: 0.3s; }
+        .input-box:focus-within { border-color: var(--blue); box-shadow: 0 0 20px rgba(59,130,246,0.15); }
+        input[type="text"] { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 1rem; }
+        .action-btn { background: transparent; border: none; font-size: 1.4rem; cursor: pointer; opacity: 0.7; transition: 0.3s; color: var(--text); }
+        .action-btn:hover { opacity: 1; transform: scale(1.1); }
+        .send-btn { background: var(--blue); color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; transform: rotate(45deg); cursor: pointer; flex-shrink: 0; }
+        #preview-area { display: none; padding: 10px; margin-bottom: 10px; background: rgba(59, 130, 246, 0.05); border-radius: 20px; text-align: center; }
+        .loading { animation: pulse 1.5s infinite; color: #444; font-size: 0.9rem; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
 <body>
-    <div class="header">THE ORACLE NEURAL VISION</div>
-    <div id="chat">
-        <div class="msg bot">Pranam Boss! Neural Vision Active. Aaj aap koi bhi trading chart ka screenshot mere saath share kijiye, main use Smart Money Concepts (SMC) ke liye analyze karunga.</div>
+    <div class="header">
+        <div class="brand">AlphaMind AI</div>
+        <div class="ceo-status">PRATAP CEO | Neural Terminal Active</div>
     </div>
-    <form class="input-area" onsubmit="S(event)">
-        <label class="file-btn">
-            📷 <input type="file" id="f" hidden accept="image/*" onchange="preview()">
-        </label>
-        <input type="text" id="i" placeholder="Ask or upload chart..." autocomplete="off">
-        <button type="submit" id="s">SEND</button>
-    </form>
+
+    <div id="chat">
+        <!-- Chat history starts clean -->
+    </div>
+
+    <div class="input-container">
+        <div id="preview-area">📷 Chart Selected. AlphaMind is ready.</div>
+        <form class="input-box" onsubmit="handleSend(event)">
+            <label class="action-btn">
+                📎 <input type="file" id="f" hidden accept="image/*" onchange="showPreview()">
+            </label>
+            <input type="text" id="i" placeholder="Message AlphaMind or upload a trading chart..." autocomplete="off">
+            <button type="submit" class="action-btn send-btn">🚀</button>
+        </form>
+    </div>
 
     <script>
-        const c = document.getElementById('chat');
-        const f = document.getElementById('f');
-        const i = document.getElementById('i');
-        const btn = document.getElementById('s');
-        let selectedImgBase64 = null;
+        const chat = document.getElementById('chat');
+        const fileInput = document.getElementById('f');
+        const userInput = document.getElementById('i');
+        const previewArea = document.getElementById('preview-area');
+        let selectedImgB64 = null;
 
-        function preview() {
-            if(f.files[0]) {
+        function showPreview() {
+            if(fileInput.files[0]) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    selectedImgBase64 = e.target.result;
-                    addMsg('📷 Chart Selected. Click SEND to analyze...', 'user', selectedImgBase64);
+                    selectedImgB64 = e.target.result;
+                    previewArea.style.display = 'block';
                 };
-                reader.readAsDataURL(f.files[0]);
+                reader.readAsDataURL(fileInput.files[0]);
             }
         }
 
-        async function S(e) {
+        async function handleSend(e) {
             e.preventDefault();
-            const val = i.value;
-            if(!val && !selectedImgBase64) return;
+            const text = userInput.value;
+            if(!text && !selectedImgB64) return;
 
-            if(val && !selectedImgBase64) addMsg(val, 'user');
+            addMsg(text, 'user', selectedImgB64);
             
-            const currentInputs = { q: val, img: selectedImgBase64 };
-            
-            i.value = '';
-            f.value = '';
-            selectedImgBase64 = null;
-            btn.classList.add('loading');
-            btn.innerText = 'Analyzing...';
+            const payload = { q: text, img: selectedImgB64 };
+            userInput.value = '';
+            fileInput.value = '';
+            selectedImgB64 = null;
+            previewArea.style.display = 'none';
 
-            const loadMsg = addMsg("Ji Boss, main chart ka DNA scan kar raha hoon... Bas ek minute.", 'bot');
-            
+            const loadDiv = document.createElement('div');
+            loadDiv.className = 'msg bot-wrap loading';
+            loadDiv.innerText = 'AlphaMind is thinking...';
+            chat.appendChild(loadDiv);
+            chat.scrollTop = chat.scrollHeight;
+
             try {
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(currentInputs)
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                loadMsg.innerText = data.answer;
+                chat.removeChild(loadDiv);
+                addMsg(data.answer, 'bot');
             } catch (err) {
-                loadMsg.innerText = "Maafi Boss, link mein thoda panga ho gaya. Phir se try kijiye.";
-            } finally {
-                btn.classList.remove('loading');
-                btn.innerText = 'SEND';
-                c.scrollTop = c.scrollHeight;
+                loadDiv.innerText = 'Neural link error. Try again.';
             }
         }
 
         function addMsg(text, type, img = null) {
-            const d = document.createElement('div');
-            d.className = 'msg ' + type;
-            d.innerText = text;
-            if(img) {
-                const m = document.createElement('img');
-                m.src = img;
-                m.className = 'img-preview';
-                d.appendChild(m);
+            const wrap = document.createElement('div');
+            wrap.className = type + '-wrap';
+            
+            const msg = document.createElement('div');
+            msg.className = 'msg';
+            
+            if(text) {
+                const txt = document.createElement('div');
+                txt.className = 'msg-text';
+                txt.innerText = text;
+                msg.appendChild(txt);
             }
-            c.appendChild(d);
-            c.scrollTop = c.scrollHeight;
-            return d;
+
+            if(img) {
+                const image = document.createElement('img');
+                image.src = img;
+                image.className = 'msg-img';
+                msg.appendChild(image);
+            }
+
+            wrap.appendChild(msg);
+            chat.appendChild(wrap);
+            chat.scrollTop = chat.scrollHeight;
         }
     </script>
 </body>
