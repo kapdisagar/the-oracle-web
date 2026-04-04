@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #0A0A0A; --sidebar: #111111; --text: #E5E7EB; --blue: #3B82F6; --glass: rgba(255,255,255,0.03); }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; margin: 0; display: flex; flex-direction: column; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
         .header { padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .brand { font-size: 1.2rem; font-weight: 600; letter-spacing: 2px; color: var(--blue); text-transform: uppercase; }
         .ceo-status { font-size: 0.8rem; color: #666; font-weight: 400; }
@@ -19,13 +19,11 @@
         .msg-img { max-width: 400px; border-radius: 12px; margin-top: 15px; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .input-container { padding: 40px 10%; position: relative; }
         .input-box { background: #1A1A1A; border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; padding: 15px 25px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 50px rgba(0,0,0,0.4); transition: 0.3s; }
-        .input-box:focus-within { border-color: var(--blue); box-shadow: 0 0 20px rgba(59,130,246,0.15); }
         input[type="text"] { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 1rem; }
         .action-btn { background: transparent; border: none; font-size: 1.4rem; cursor: pointer; opacity: 0.7; transition: 0.3s; color: var(--text); }
-        .action-btn:hover { opacity: 1; transform: scale(1.1); }
         .send-btn { background: var(--blue); color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; transform: rotate(45deg); cursor: pointer; flex-shrink: 0; }
         #preview-area { display: none; padding: 10px; margin-bottom: 10px; background: rgba(59, 130, 246, 0.05); border-radius: 20px; text-align: center; }
-        .loading { animation: pulse 1.5s infinite; color: #444; font-size: 0.9rem; }
+        .loading { animation: pulse 1.5s infinite; color: #444; font-size: 0.9rem; margin-bottom: 10px; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
@@ -35,9 +33,7 @@
         <div class="ceo-status">PRATAP CEO | Neural Terminal Active</div>
     </div>
 
-    <div id="chat">
-        <!-- Chat history starts clean -->
-    </div>
+    <div id="chat"></div>
 
     <div class="input-container">
         <div id="preview-area">📷 Chart Selected. AlphaMind is ready.</div>
@@ -55,6 +51,7 @@
         const fileInput = document.getElementById('f');
         const userInput = document.getElementById('i');
         const previewArea = document.getElementById('preview-area');
+        const BOSS_EMAIL = "ketshanstudio@gmail.com";
         let selectedImgB64 = null;
 
         function showPreview() {
@@ -75,7 +72,7 @@
 
             addMsg(text, 'user', selectedImgB64);
             
-            const payload = { q: text, img: selectedImgB64 };
+            const payload = { q: text, img: selectedImgB64, user_email: BOSS_EMAIL };
             userInput.value = '';
             fileInput.value = '';
             selectedImgB64 = null;
@@ -83,7 +80,7 @@
 
             const loadDiv = document.createElement('div');
             loadDiv.className = 'msg bot-wrap loading';
-            loadDiv.innerText = 'AlphaMind is thinking...';
+            loadDiv.innerText = 'AlphaMind AI - Institutional Data Syncing...';
             chat.appendChild(loadDiv);
             chat.scrollTop = chat.scrollHeight;
 
@@ -104,24 +101,20 @@
         function addMsg(text, type, img = null) {
             const wrap = document.createElement('div');
             wrap.className = type + '-wrap';
-            
             const msg = document.createElement('div');
             msg.className = 'msg';
-            
             if(text) {
                 const txt = document.createElement('div');
                 txt.className = 'msg-text';
                 txt.innerText = text;
                 msg.appendChild(txt);
             }
-
             if(img) {
                 const image = document.createElement('img');
                 image.src = img;
                 image.className = 'msg-img';
                 msg.appendChild(image);
             }
-
             wrap.appendChild(msg);
             chat.appendChild(wrap);
             chat.scrollTop = chat.scrollHeight;
