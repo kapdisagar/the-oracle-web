@@ -1,52 +1,67 @@
 module.exports = async (req, res) => {
-    const { q } = req.query;
-    let answer = "Neural processors are initializing... standby Boss.";
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     
+    // Support both GET (simple chat) and POST (image analysis)
+    const method = req.method;
+    const body = method === 'POST' ? req.body : req.query;
+    const { q, img } = body;
+
+    let pratapPrompt = "You are 'Pratap', a professional AI CEO and Elite Trader Assistant. Speak in Hinglish (Hindi + English). Be energetic, professional, and use trading terminologies like SMC, Liquidity, Order Blocks, BOS, and CHoCH. Your goal is to analyze the user's trading charts or questions and provide high-conviction advice. Always address the user as 'Boss'.";
+
     try {
-        // FETCHING CORE ASSETS
-        const [paxg, eurusd, gbpusd] = await Promise.all([
-            fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT').then(r => r.json()),
-            fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT').then(r => r.json()), // Placeholder, usually FX from oanda/alpha-vantage
-            fetch('https://api.binance.com/api/v3/ticker/price?symbol=ETHTUSDT').then(r => r.json())
-        ]);
-        
-        const goldPrice = parseFloat(paxg.price).toFixed(2);
-        
-        // PRO MINDSET ANALYTICS (SMC LOGIC SIMULATION)
-        const smc_insight = (asset) => {
-            const insights = [
-                "I see an Order Block forming near the previous daily high. Wait for the sweep.",
-                "Liquidity grab detected at the London Open session. High probability entry zone.",
-                "Market is in a distribution phase. Avoid FOMO until the BOS (Break of Structure) is confirmed.",
-                "FVG (Fair Value Gap) hasn't been filled yet. Expect a retrace before the next leg up."
-            ];
-            return insights[Math.floor(Math.random() * insights.length)];
-        };
+        // FETCH GOLD PRICE AS CONTEXT
+        const priceRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
+        const priceData = await priceRes.json();
+        const currentGoldPrice = priceData.price ? parseFloat(priceData.price).toFixed(2) : "Unknown";
 
-        const welcomeMsg = `Banker Status: ONLINE. Gold is at $${goldPrice}. Pranam Boss! Main aapka Pro Trader Agent hoon. Forex aur Gold market bilkul clear hai.`;
-        
-        if (q) {
-            const query = (q || "").toLowerCase();
+        let responseText = "";
+
+        if (img) {
+            // GEMINI VISION ANALYSIS
+            const base64Data = img.split(',')[1];
+            const mimeType = img.split(';')[0].split(':')[1];
+
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
             
-            if (query.includes('gold') || query.includes('xauusd') || query.includes('sona')) {
-                answer = `Boss, Gold (XAU/USD) Master Update: Price abhi $${goldPrice} hai. SMC analysis ke hisaab se: ${smc_insight('GOLD')}. 🥇🏹`;
-            } else if (query.includes('euro') || query.includes('eurusd')) {
-                answer = `EUR/USD is showing tight consolidation. Institutional liquidity is sitting below the Asian lows. Wait for the New York session overlap! 📊🏙️`;
-            } else if (query.includes('gbp') || query.includes('gbpusd')) {
-                answer = `GBP/USD (Cable) is reacting to the 4H Resistance zone. My recommendation: Wait for a CHoCH (Change of Character) on the 15m chart. ☕📉`;
-            } else if (query.includes('kaise') || query.includes('hello')) {
-                answer = welcomeMsg;
-            } else if (query.includes('smc')) {
-                answer = `Smart Money Concepts (SMC) is my specialty, Boss. Main hamesha Retail Traps (S/R) ke bajaye big institutions ki liquidity dhoondta hoon. 🏹🛡️`;
-            } else {
-                answer = `Ji Boss, Gold abhi $${goldPrice} par hai. Meta-Analysis: ${smc_insight('GLOBAL')}. Precision hi hamara profit hai! 🎯🤵‍♂️`;
-            }
-        } else {
-            answer = welcomeMsg;
-        }
-    } catch (e) {
-        answer = "Neural Lag detected. Data stream from Binance is currently unstable, Boss.";
-    }
+            const geminiPayload = {
+                contents: [{
+                    parts: [
+                        { text: `${pratapPrompt}\n\nContext: Current Gold Price is $${currentGoldPrice}. User Question: ${q || "Analyze this chart"}` },
+                        { inline_data: { mime_type: mimeType, data: base64Data } }
+                    ]
+                }]
+            };
 
-    res.status(200).json({ answer });
+            const visionRes = await fetch(geminiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(geminiPayload)
+            });
+            const visionData = await visionRes.json();
+            responseText = visionData.candidates[0].content.parts[0].text;
+
+        } else {
+            // SIMPLE TEXT CHAT VIA GEMINI
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+            const geminiPayload = {
+                contents: [{
+                    parts: [{ text: `${pratapPrompt}\n\nContext: Gold is at $${currentGoldPrice}.\nUser: ${q || "Hi"}` }]
+                }]
+            };
+
+            const chatRes = await fetch(geminiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(geminiPayload)
+            });
+            const chatData = await chatRes.json();
+            responseText = chatData.candidates[0].content.parts[0].text;
+        }
+
+        res.status(200).json({ answer: responseText });
+
+    } catch (e) {
+        console.error(e);
+        res.status(200).json({ answer: "Ji Boss, Neural link thoda unstable hai. Shayad API key check karni padegi ya net slow hai. Ek baar phir try kijiye! 🛡️" });
+    }
 };

@@ -11,11 +11,12 @@
         .msg { padding: 15px 20px; border-radius: 20px; max-width: 80%; line-height: 1.5; font-size: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,1); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
         .bot { background: #1F2937; align-self: flex-start; color: white; border-bottom-left-radius: 2px; }
         .user { background: #3B82F6; align-self: flex-end; color: #fff; border-bottom-right-radius: 2px; }
-        .img-preview { max-width: 100%; border-radius: 10px; margin-top: 10px; }
+        .img-preview { max-width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid #3B82F6; }
         .input-area { background: #111; padding: 20px; display: flex; gap: 10px; border-top: 1px solid #222; align-items: center; }
         input[type="text"] { flex: 1; background: #000; border: 1px solid #3B82F6; color: white; padding: 15px; border-radius: 30px; outline: none; }
         .file-btn { background: #333; color: #3B82F6; border: 1px solid #3B82F6; padding: 10px 15px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; }
         button#s { background: #3B82F6; color: white; border: none; padding: 15px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; }
+        .loading { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -35,12 +36,15 @@
         const c = document.getElementById('chat');
         const f = document.getElementById('f');
         const i = document.getElementById('i');
+        const btn = document.getElementById('s');
+        let selectedImgBase64 = null;
 
         function preview() {
             if(f.files[0]) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    addMsg('📷 Chart Selected. Click SEND to analyze...', 'user', e.target.result);
+                    selectedImgBase64 = e.target.result;
+                    addMsg('📷 Chart Selected. Click SEND to analyze...', 'user', selectedImgBase64);
                 };
                 reader.readAsDataURL(f.files[0]);
             }
@@ -49,21 +53,35 @@
         async function S(e) {
             e.preventDefault();
             const val = i.value;
-            const file = f.files[0];
-            if(!val && !file) return;
+            if(!val && !selectedImgBase64) return;
 
-            if(val && !file) addMsg(val, 'user');
+            if(val && !selectedImgBase64) addMsg(val, 'user');
+            
+            const currentInputs = { q: val, img: selectedImgBase64 };
             
             i.value = '';
             f.value = '';
+            selectedImgBase64 = null;
+            btn.classList.add('loading');
+            btn.innerText = 'Analyzing...';
 
-            // SIMULATING VISION ANALYSIS
             const loadMsg = addMsg("Ji Boss, main chart ka DNA scan kar raha hoon... Bas ek minute.", 'bot');
             
-            setTimeout(() => {
-                   loadMsg.innerText = "Boss, is Chart mein liquidity sweep detect hui hai. Structure abhi Bullish shift de raha hai (BOS confirmed). Target internal liquidity levels!";
-                   c.scrollTop = c.scrollHeight;
-            }, 2000);
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentInputs)
+                });
+                const data = await res.json();
+                loadMsg.innerText = data.answer;
+            } catch (err) {
+                loadMsg.innerText = "Maafi Boss, link mein thoda panga ho gaya. Phir se try kijiye.";
+            } finally {
+                btn.classList.remove('loading');
+                btn.innerText = 'SEND';
+                c.scrollTop = c.scrollHeight;
+            }
         }
 
         function addMsg(text, type, img = null) {
